@@ -20,6 +20,6 @@ Code wise, thankfully there are projects that have already controlled drones thr
 On the engineering side of things, the drone uses 4 2300kv motors that are going to run on a 4S3P or 4S2P battery configuration with some nice ass 18650 cells (10A 3000mAh!!!) from LiitoKala.
 In order to keep track of battery voltage (and subsequently a rough approximation of remaining capacity) the drone is going to use a basic voltmeter from the arduino, using 90kohm and 10k ohm resistors.
 
-In the repository I included a program that calculates the approximate flight time of various battery sizes (also takes weight of cells into account) 
+In the repository I included a program that calculates the approximate flight time of various battery sizes (also takes weight of cells into account). This uses linear regression to fill in gaps of the manufacturers datasheet (A @ thrust%, or thrust% @ thrust in grams)
 
 I'll keep this file updated as things progress
