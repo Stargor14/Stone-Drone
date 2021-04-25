@@ -17,7 +17,7 @@ between the drone and my computer. For now it's an idea I will explore further.
 
 Code wise, thankfully there are projects that have already controlled drones through raspberry pis and multiwii firmware, the one im taking inspirtation form for my code is https://github.com/darkterbear/drone. The creater of that project already wrote code to communicate to the flight controller through python code, so that takes a huge burden off my shoulders. 
 
-On the engineering side of things, the drone uses 4 2300kv motors that are going to run on a 4S3P or 4S2P battery configuration with some nice ass 18650 cells (10A 3000mAh!!!) from LiitoKala.
+On the engineering side of things, the drone uses 4 2300kv motors that are going to run on a 4S3P or 4S2P battery configuration with some nice ass 18650 cells (20A 3400mAh!!!) from LiitoKala.
 In order to keep track of battery voltage (and subsequently a rough approximation of remaining capacity) the drone is going to use a basic voltmeter from the arduino, using 90kohm and 10k ohm resistors.
 
 In the repository I included a program that calculates the approximate flight time of various battery sizes (also takes weight of cells into account). This uses linear regression to fill in gaps of the manufacturers datasheet (A @ thrust%, or thrust% @ thrust in grams)
