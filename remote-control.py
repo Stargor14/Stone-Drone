@@ -12,6 +12,9 @@ time.sleep(1.0)
 board.enable_arm()
 board.arm()
 
+#need function or taking in sensory data and processing
+#need diff modes for flying, set path, gps to gps, follow the dots (using camera), random patrol (indoor using sensors), hover at ALTITUDE, etc etc
+
 def calcTR():
     #calcualte Throttle and rudder/yaw
     return 0,-1
