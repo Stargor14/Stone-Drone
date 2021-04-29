@@ -25,4 +25,4 @@ In the repository I included a program that calculates the approximate flight ti
 
 I'll keep this file updated as things progress
 
-Update1: Some battery parts came in, so I soldered together a sketchy ass battery from old laptop 18650s. Turns out soldering nickel strips onto a flat surface isnt very fun. My left index finger now has 50% less touch after i burnered 6 consecutive times. I have to get a spot welder next time I do this.
+Update1: Some battery parts came in, so I soldered together a sketchy ass battery from old laptop 18650s. Turns out soldering nickel strips onto a flat surface isnt very fun. My left index finger now has 50% less touch after i burnered it 6 consecutive times. I have to get a spot welder next time I do this. Also, the fire extinguisher is now in my room.
