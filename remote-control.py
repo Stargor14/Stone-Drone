@@ -1,11 +1,14 @@
 #!/usr/bin/env python
-
+import serial
 from msp import MultiWii
 from util import push16
 import time
 
-board = MultiWii("/dev/ttyACM0") #__init__ takes teh serial port, get from arduino IDE
+ser = serial.Serial('COM4', 9600)# serial port for sensory arduino
+board = MultiWii("/dev/ttyACM0") #__init__ takes the serial port, get from arduino IDE
 print("Flight Controller connected!")
+#GPS Waypoint Navigation, Live Stream Video, Altitude Hold, Position Hold, Return to Home, random patrol, follow (some bright color) ball
+#Telemetry via Bluetooth
 
 time.sleep(1.0)
 
@@ -15,13 +18,39 @@ board.arm()
 #need function or taking in sensory data and processing
 #need diff modes for flying, set path, gps to gps, follow the dots (using camera), random patrol (indoor using sensors), hover at ALTITUDE, etc etc
 
-def calcTR():
-    #calcualte Throttle and rudder/yaw
-    return 0,-1
+def take_sensory():
+    #take sensory data from ultrasonics
+    #also take the current picth yaw etc, ordered 2 gyros for a reason (not rlly this is lucky af)
+    sensory=[]
+    return sensory
 
-def calcAE():
-    #calculate Aileron/roll and elevator/?
-    return 0,0
+def camservos(x,y):
+    #will move camera servos to desired position to x,y
+    '''
+    y(low PWM <- middlePWM -> high PWM of y motor)
+    |
+    |    . <-- starts at middle and can go in every direction
+    |
+    |_________ x(low PWM <- middlePWM -> high PWM of x motor)
+    '''
+    return
+
+def sensorservos(x,y):
+    #moves sensor servos? maybe gyroscopes it
+    # might end up deprecating if i dont gimbal the ultrasonics
+    return
+
+def calcTRAE():
+    #calcualte Throttle and rudder/yaw
+    #throttle and rotation, yaw can be used as LIDAR type beat, can scan using all sensors and map surroundings, plot itslef within the space
+    #give direction/speed
+    #defaults:
+    #rudder: 0 (no spin)
+    #throttle: -1 (no throttle)
+    #aileron: 0 (no left/ right movement)
+    #elevator: 0 (no up/downward pitch)
+
+    return 0,-1,0,0
 
 def run():
     while True:
@@ -30,13 +59,11 @@ def run():
         # calculate roll, pitch, yaw and throttle from dpad positions
         # 0 being centre, -1 being far left and 1 being far right.
         # 0 being centre, -1 being at the bottom and 1 being at the top.
-        x, y = calcTR()
-        throttle = (y + 1.0) / 2.0 #throttle
-        rudder = x #yaw
-
-        x, y = calcAE()
-        aileron = x #roll
-        elevator = y #? figure out
+        x1, y1 , x2, y2 = calcTRAE()
+        rudder = x1 #yaw
+        throttle = (y1 + 1.0) / 2.0 #throttle
+        aileron = x2 #roll
+        elevator = y2 #pitch
 
         # roll, pitch, yaw, throttle, aux1, aux2, aux3, aux4
         # each modulate from 1000 to 2000
