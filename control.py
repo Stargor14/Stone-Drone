@@ -4,6 +4,7 @@ from msp import MultiWii
 from util import push16
 import time
 import random
+import thrust
 from matplotlib import pyplot as plt
 #raspi password is: drone
 ser = 0
@@ -31,6 +32,9 @@ def take_sensory():
     #gonna have to trial and error the gyro to process raw data
     return sensory
 
+def converthover(strength):
+    return [0,0,strength,0]
+
 def convert(code,strength=100):
     #move like an 8 way stick for "simplicity"
     R = 0
@@ -47,7 +51,7 @@ def convert(code,strength=100):
          /     \ /    \          NETRAL: 000,001,002, etc.
         5       6      7
 
-    -1 = left/back 0 = neutral (throttle 0 is hover, this has to be calculated thru trail and error) 1 = right/forward
+    -1 = left/back 0 = neutral (throttle 0 is hover (estimate), this has to be calculated thru trail and error) 1 = right/forward
     000: R: -0.5 P:  0.5 T: 0.0 (essenitally hover throttle)
     001: R:  0.0 P:  0.5 T: 0.0
     002: R:  0.5 P:  0.5 T: 0.0
@@ -82,7 +86,6 @@ def convert(code,strength=100):
    -108: R:  0.0 P:  0.0 T: -0.2
     '''
     code = str(code)#making sure code is string
-    strength = strength/100
     #elevation
     try:
         if code[0:2] == '00':
@@ -149,7 +152,6 @@ def sensorservos(x,y):
     #moves sensor servos? maybe gyroscopes it
     # might end up deprecating if i dont gimbal the ultrasonics
     return
-
 #calcualte Throttle and rudder/yaw
 #throttle and rotation, yaw can be used as LIDAR type beat, can scan using all sensors and map surroundings, plot itslef within the space
 #give direction/speed
@@ -158,16 +160,23 @@ def sensorservos(x,y):
 #throttle: -1 (no throttle)
 #aileron: 0 (no left/ right movement)
 #elevator: 0 (no up/downward pitch)
-
+def getsend():
+    #called when client asks for server(drone) info
+    return
+hoverp = thrust.predict(895)[0]
 def pushdata(data):
     buf = []
-    #A = roll
-    #E = pitch
-    #T = throttle
-    #R = yaw/spin
+    #A = roll 0
+    #E = pitch 1
+    #T = throttle 2
+    #R = yaw/spin 3
+    print(int(data[2] * (1800-((1000*(hoverp/100))+1000)) + 1000+(1000*((hoverp)/100))))
     push16(buf, int(data[0] * 500 + 1500)) #test each individual axis
     push16(buf, int(data[1] * 500 + 1500))
-    push16(buf, int(data[2] * 500 + 1500))
+    if int(data[2])<0:
+        push16(buf, int(data[2] * (1000*(hoverp/100)) + 1000 + (1000*((hoverp)/100))))
+    else:
+        push16(buf, int(data[2] * (1800-((1000*(hoverp/100))+1000)) + 1000+(1000*((hoverp)/100)))) #1000-2000, y intercept is the hover%, calcuklated as 1000+(1000*(%)/100)
     push16(buf, int(data[3] * 500 + 1500))
     #idek what the values of the serial are, but thankfully someone smarter than me atm made a solution for it, thank u Aldo Vargas
     push16(buf, 1500)# none of these will be used, I have seperate arduino for I/O
@@ -176,25 +185,31 @@ def pushdata(data):
     push16(buf, 1000) #buf is just a serialized string/array? of all the informatiuon being sent, check out util.py to verify
     # send rc command
     #board.sendCMD(MultiWii.SET_RAW_RC, buf)
-    time.sleep(0.025)
+    #time.sleep(0.025)
 
     # print board attitude
     #board.getData(MultiWii.ATTITUDE)
     #print(board.attitude)
-    time.sleep(0.025)
+    #time.sleep(0.025)
     return buf
-
-def
 
 def hovercalc(dheight=2):
     sensors = getsensory()
     strength = 0.1
     liftoffindoor(1)
-    if sensors['height'] < dheight:
+    strt = time.perf_counter()
+    while time.perf_counter()-strt<5:
+        if sensors['height'] < dheight:
+            strength
+            pushdata(convert("",))
 
 def liftoffindoor(dheight=2):
+    strt = time.perf_counter()
     while True:
-        pushdata(convert('108',0.5))
+        if time.perf_counter()-strt<2:
+            pushdata(convert('108',0.5))
+        else:
+            break
 
 def hovertest():
     liftoff = True
@@ -209,11 +224,13 @@ def hovertest():
     while True:
         if liftoff:
             code = '108'
-            if time.perf_counter() - strt >= 2 or A+0.6>=3:
+            if time.perf_counter() - strt >= 5:
                 hover = True
+
                 print('Hovering!')
                 strt = time.perf_counter()
                 liftoff = False
+            data = convert(code,0.5)
         if hover:
             code = '008'
             if time.perf_counter() - strt >= 5:
@@ -221,20 +238,21 @@ def hovertest():
                 print("Landing!")
                 strt = time.perf_counter()
                 hover = False
+            data = convert(code,0)
         if land:
             code = '-108'
-            if time.perf_counter() - strt >= 5 or A-0.6 <=0:
+            if time.perf_counter() - strt >= 5:
                 print('Sequence over!')
-                land = False
+                land = False    
                 break
-        a,e,t,r = convert(code)
-        A += t #replace with real location data
-        y+= e
-        x+= a
+            data = convert(code,0.25)
+        A += data[2]#replace with real location data
+        y+= data[1]
+        x+= data[0]
         plt.plot(path,color='green')
         plt.pause(0.05)
         path.append([A,y,x])
-        pushdata(a,e,t,r)
+        pushdata(data)
 
 codelist=[
  "000", "100", "-100"
@@ -250,5 +268,5 @@ codelist=[
 reverselist=["",
 '']
 
-liftofftest()
+hovertest()
 plt.show()
