@@ -6,12 +6,19 @@ import time
 import random
 import thrust
 from matplotlib import pyplot as plt
+import socket as so
 #raspi password is: drone
 ser = 0
 board = 0
 def initialize():
+    global s
+    global port
     global ser
     global board
+    s = so.socket()
+    port = 42069
+    s.bind(('', port))
+    s.listen(5)
     ser = serial.Serial('COM4', 9600)# serial port for sensory arduino
     board = MultiWii("/dev/ttyACM0") #__init__ takes the serial port, get from arduino IDE
     print("Flight Controller connected!")
@@ -194,14 +201,18 @@ def pushdata(data):
     return buf
 
 def hovercalc(dheight=2):
-    sensors = getsensory()
+    #sensors = getsensory()
     strength = 0.1
     liftoffindoor(1)
     strt = time.perf_counter()
     while time.perf_counter()-strt<5:
-        if sensors['height'] < dheight:
-            strength
-            pushdata(convert("",))
+        if sensors['height'] < dheight*.99:
+            strength*=1.01
+            strt = time.perf_counter()
+        if sensors['height'] > dheight*1.01:
+            strength*=.99
+            strt = time.perf_counter()
+        pushdata(converthover(strength))
 
 def liftoffindoor(dheight=2):
     strt = time.perf_counter()
@@ -226,7 +237,6 @@ def hovertest():
             code = '108'
             if time.perf_counter() - strt >= 5:
                 hover = True
-
                 print('Hovering!')
                 strt = time.perf_counter()
                 liftoff = False
@@ -243,7 +253,7 @@ def hovertest():
             code = '-108'
             if time.perf_counter() - strt >= 5:
                 print('Sequence over!')
-                land = False    
+                land = False
                 break
             data = convert(code,0.25)
         A += data[2]#replace with real location data
@@ -268,5 +278,21 @@ codelist=[
 reverselist=["",
 '']
 
-hovertest()
-plt.show()
+def flightloop():
+    while True:
+        sensory = []
+        try:
+            data = c.recv(1024)
+            c.send(bytes(sensory))
+            if not data:
+                raise
+            print(data)
+        except:
+            print('closed')
+            c.close()
+            break
+while True:
+    c, addr = s.accept()
+    #initialize()
+    print(f'connected from {addr}, ready to fly')
+    flightloop()

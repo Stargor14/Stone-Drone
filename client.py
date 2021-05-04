@@ -17,8 +17,15 @@ f = False
 b = False
 u = False
 d = False
+spin = False
 controlling = False
+strength = 1
+bytesent = 0
+strt = time.perf_counter()
+rate = 1/10 #framerate
+ticks = 0
 while reading:
+    code = 'no'
     for event in pygame.event.get():
         if event.type == pygame.JOYAXISMOTION:
             v = round(event.value)
@@ -42,19 +49,31 @@ while reading:
             bu = event.button
             if bu == 0:
                 u = True
+            if bu == 1:
+                spin = True
             if bu == 2:
                 d = True
             if bu == 3:
                 if controlling:
                     controlling = False
-                    print('off')
                 else:
                     controlling = True
-                    print('on')
+            if bu == 5:
+                if strength == 1:
+                    strength = 2
+                elif strength == 2:
+                    strength = 3
+                elif strength == 3:
+                    strength = 4
+                elif strength == 4:
+                    strength = 1
+
         if event.type == pygame.JOYBUTTONUP:
             bu = event.button
-            if bu != 2:
+            if bu == 0:
                 u = False
+            if bu == 1:
+                spin = False
             if bu == 2:
                 d = False
         if event.type == pygame.QUIT:
@@ -123,7 +142,19 @@ while reading:
                 code = '108'
             if d:
                 code = '-108'
-        print(code)
-        s.send(code.encode())
-        #figure out how to recive server data while sending, maybe multithreading?
-    time.sleep(0.025)
+        if spin:
+            code = '999'
+    msg = f'{code} {strength}'
+    msg = msg.encode()
+    s.send(msg)
+    data = s.recv(10000000)
+    #print(len(data))
+    bytesent += len(data)+len(msg)
+    byterate = round(bytesent/(time.perf_counter()-strt))
+    ticks+=1
+    if ticks == 300:
+        strt = time.perf_counter()
+        bytesent = 0
+        ticks = 0
+    print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
+    time.sleep(rate)

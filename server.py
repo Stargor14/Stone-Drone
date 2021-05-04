@@ -11,6 +11,7 @@ def listen():
     while True:
         try:
             data = c.recv(1024)
+            c.send(b'test')
             if not data:
                 raise
             print(data)
