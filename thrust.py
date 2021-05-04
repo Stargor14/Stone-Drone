@@ -1,10 +1,9 @@
 import csv
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.linear_model import LinearRegression
 import numpy as np
 
-data = pd.read_csv('planning/drone specs.csv')
+data = pd.read_csv('drone specs.csv')
 x = data['%'].to_numpy().reshape((-1, 1))
 y = data['g'].to_numpy()
 model = LinearRegression().fit(x,y)

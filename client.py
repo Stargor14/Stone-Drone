@@ -5,7 +5,7 @@ pygame.init()
 
 s = so.socket()
 port = 42069
-s.connect(('localhost',port))
+s.connect(('localhost',port)) #chnage to raspi ip
 
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)

@@ -5,7 +5,6 @@ from util import push16
 import time
 import random
 import thrust
-from matplotlib import pyplot as plt
 import socket as so
 import numpy as np
 import cv2 as cv
@@ -16,6 +15,7 @@ s = so.socket()
 port = 42069
 s.bind(('', port))
 s.listen(5)
+
 def initialize():
     global ser
     global board
