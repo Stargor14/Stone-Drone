@@ -8,14 +8,17 @@ import thrust
 import socket as so
 import numpy as np
 import pickle
-import detect
-#raspi password is: drone
+#raspi password is: eryk2005
 ser = 0
 board = 0
 s = so.socket()
 port = 42069
 s.bind(('', port))
 s.listen(5)
+cap = cv2.VideoCapture(0)
+cap.set(3,1280)
+cap.set(4,720)
+cap.set(10,70)
 
 def initialize():
     global ser
@@ -168,6 +171,9 @@ class Close(Exception):
     pass
 def getremdeg():
     return 90,-90,90,-90
+def getimg():
+    success,img = cap.read()
+    return img
 def flightloop():
     im = cv2.imread("pic.jpg").tobytes()
     command = '008'
@@ -176,7 +182,7 @@ def flightloop():
     while True:
         try:
             data = c.recv(100000)
-            c.send(pickle.dumps(detect.getimg()))
+            c.send(pickle.dumps(getimg()))
             if tick == 0:
                 data = pickle.loads(data)
                 data = data.split()
