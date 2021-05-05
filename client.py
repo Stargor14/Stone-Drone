@@ -5,7 +5,7 @@ pygame.init()
 
 s = so.socket()
 port = 42069
-s.connect(('localhost',port)) #chnage to raspi ip
+s.connect(('192.168.0.18',port)) #chnage to raspi ip
 
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
@@ -147,7 +147,7 @@ while reading:
     msg = f'{code} {strength}'
     msg = msg.encode()
     s.send(msg)
-    data = s.recv(10000000)
+    data = s.recv(410000)
     #print(len(data))
     bytesent += len(data)+len(msg)
     byterate = round(bytesent/(time.perf_counter()-strt))

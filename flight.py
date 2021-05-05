@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+import cv2 as cv
 import serial
 from msp import MultiWii
 from util import push16
@@ -7,7 +7,6 @@ import random
 import thrust
 import socket as so
 import numpy as np
-import cv2 as cv
 #raspi password is: drone
 ser = 0
 board = 0
@@ -131,6 +130,7 @@ def pushdata(data):
         throttle = int((100-hoverp)*data[2]+hoverp)
         #print(f'{(100-hoverp)*data[2]+hoverp}% throttle')
     push16(buf, int(data[3] * 400 + 1500))
+    print(data[3])
     spin = abs(data[3] * 100)
     print(f"Roll: {roll} Pitch: {pitch} Throttle: {throttle}% Spin: {spin}")
     #idek what the values of the serial are, but thankfully someone smarter than me atm made a solution for it, thank u Aldo Vargas
@@ -166,7 +166,8 @@ def flightloop():
         sensory = [1]
         try:
             data = c.recv(1024)
-            c.send(np.random.bytes(408960))
+            n = np.random.bytes(408960)
+            c.send(n)
             #might add second send call for sensory data
             if not data:
                 raise Close
