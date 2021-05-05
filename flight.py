@@ -1,4 +1,4 @@
-import cv2 as cv
+import cv2
 import serial
 from msp import MultiWii
 from util import push16
@@ -7,6 +7,8 @@ import random
 import thrust
 import socket as so
 import numpy as np
+import pickle
+import detect
 #raspi password is: drone
 ser = 0
 board = 0
@@ -130,7 +132,6 @@ def pushdata(data):
         throttle = int((100-hoverp)*data[2]+hoverp)
         #print(f'{(100-hoverp)*data[2]+hoverp}% throttle')
     push16(buf, int(data[3] * 400 + 1500))
-    print(data[3])
     spin = abs(data[3] * 100)
     print(f"Roll: {roll} Pitch: {pitch} Throttle: {throttle}% Spin: {spin}")
     #idek what the values of the serial are, but thankfully someone smarter than me atm made a solution for it, thank u Aldo Vargas
@@ -158,28 +159,65 @@ codelist=[
 ,"006", "106", "-106"
 ,"007", "107", "-107"
 ,"008", "108", "-108"]
-
+def centreobject(box):
+    middlex = (box[2]/2)+box[0]
+    middley = (box[3]/2)+box[1]
+    middle = (middlex,middley)
+    return middle
 class Close(Exception):
     pass
+def getremdeg():
+    return 90,-90,90,-90
 def flightloop():
+    im = cv2.imread("pic.jpg").tobytes()
+    command = '008'
+    strength = 0.25
+    tick = 0
     while True:
-        sensory = [1]
         try:
-            data = c.recv(1024)
-            n = np.random.bytes(408960)
-            c.send(n)
-            #might add second send call for sensory data
+            data = c.recv(100000)
+            c.send(pickle.dumps(detect.getimg()))
+            if tick == 0:
+                data = pickle.loads(data)
+                data = data.split()
+                command = data[0]
+            elif tick == 1:
+                boxs = pickle.loads(data)
+                boxs = [list(x) for x in boxs]
+                if boxs == [[]]:
+                    print('not processing')
             if not data:
                 raise Close
-            #print(data)
-            data = data.decode().split()
-            if data[0] != 'no':
+
+            #flightlogic
+            if command != 'no': #essentially if manual control is on
                 idd = int(data[1])
                 strength = idd*0.25
-                pushdata(convert(data[0],strength))
-            else:
-                print('doing automated stuff')
-            #print(data)
+                pushdata(convert(command,strength))
+            else: #if in automation mode
+                if tick == 1:
+                    if len(boxs) == 1:
+                        #480x620
+                        centrex = 640/2
+                        centrey = 480/2
+                        xmod = 640/180
+                        ymod = 480/180
+                        objloc = centreobject(boxs[0])
+                        servoloc = (90,90)
+                        remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
+                        padding = 50 #allows for margin of error, in pixels
+                        newx = 0
+                        newy = 0
+                        if objloc[0]/xmod>(centrex+padding)/xmod or objloc[0]/xmod<(centrex-padding)/xmod:# x not centred
+                            newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[0])
+                        if objloc[1]/ymod>(centrey+padding)/ymod or objloc[1]/ymod<(centrey-padding)/ymod:# y not centred
+                            newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[2])
+                        print((newx,newy))
+            #end of loop actions
+            if tick == 0:
+                tick = 1
+            elif tick == 1:
+                tick = 0
         except Close:
             print(f'closed connection')
             c.close()

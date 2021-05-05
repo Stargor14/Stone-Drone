@@ -1,11 +1,14 @@
 import socket as so
 import time
 import pygame
+import detect
+import pickle
 pygame.init()
 
 s = so.socket()
 port = 42069
-s.connect(('192.168.0.18',port)) #chnage to raspi ip
+#192.168.0.24
+s.connect(('localhost',port)) #chnage to raspi ipp
 
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
@@ -24,6 +27,8 @@ bytesent = 0
 strt = time.perf_counter()
 rate = 1/10 #framerate
 ticks = 0
+tick = 0
+processing = False
 while reading:
     code = 'no'
     for event in pygame.event.get():
@@ -67,7 +72,11 @@ while reading:
                     strength = 4
                 elif strength == 4:
                     strength = 1
-
+            if bu == 4:
+                if not processing:
+                    processing = True
+                else:
+                    processing = False
         if event.type == pygame.JOYBUTTONUP:
             bu = event.button
             if bu == 0:
@@ -144,11 +153,21 @@ while reading:
                 code = '-108'
         if spin:
             code = '999'
+    boxs=[]
+    if processing:
+        data = pickle.loads(data)
+        boxs = detect.scan(data)
     msg = f'{code} {strength}'
-    msg = msg.encode()
-    s.send(msg)
-    data = s.recv(410000)
-    #print(len(data))
+    #preprocessing to be sent as bytes
+    boxs = pickle.dumps(boxs)
+    msg = pickle.dumps(msg)
+    #choosing what message to send
+    if tick == 0:
+        s.send(msg)
+    if tick == 1:
+        s.send(boxs)
+    data = s.recv(1161600)
+    #byterate testing
     bytesent += len(data)+len(msg)
     byterate = round(bytesent/(time.perf_counter()-strt))
     ticks+=1
@@ -156,5 +175,11 @@ while reading:
         strt = time.perf_counter()
         bytesent = 0
         ticks = 0
-    print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
+    #print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
+
+    #end of loop code
+    if tick == 0:
+        tick = 1
+    elif tick == 1:
+        tick = 0
     time.sleep(rate)
