@@ -182,7 +182,6 @@ def getimg():
     success,img = cap.read()
     return img
 def flightloop():
-    im = cv2.imread("pic.jpg").tobytes()
     command = '008'
     strength = 0.25
     tick = 0
@@ -194,6 +193,8 @@ def flightloop():
                 data = pickle.loads(data)
                 data = data.split()
                 command = data[0]
+                idd = int(data[1])
+                strength = idd*0.25
             elif tick == 1:
                 boxs = pickle.loads(data)
                 boxs = [list(x) for x in boxs]
@@ -204,8 +205,6 @@ def flightloop():
 
             #flightlogic
             if command != 'no': #essentially if manual control is on
-                idd = int(data[1])
-                strength = idd*0.25
                 pushdata(convert(command,strength))
             else: #if in automation mode
                 if tick == 1:
