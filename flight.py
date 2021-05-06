@@ -287,7 +287,7 @@ def flightloop():
         except Exception as e:
             print(e)
 
-while True:
+while True: #backup loop, if connection is lost
     c, addr = s.accept()
     #initialize()
     print(f'connected from {addr}, ready to fly')
