@@ -1,5 +1,5 @@
 # Stone-Drone
-The name is inspired by Dr. Stone a pretty cool anime I'm watching atm, This is a fully autonomous drone that uses a raspi, arduino mega and a multitude of sensors to be able to maneuver in and outdoors 
+This is a fully autonomous drone that uses a raspi, arduino mega and a multitude of sensors to be able to maneuver in and outdoors 
 
 So far this project has been extremly fun to just plan out and as of late april 2021, I'm still waiting on parts to come in from China. 
 
