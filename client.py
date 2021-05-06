@@ -3,13 +3,14 @@ import time
 import pygame
 import detect
 import pickle
+import cv2
 pygame.init()
 
 s = so.socket()
 port = 42069
 #192.168.0.24
-s.connect(('localhost',port)) #chnage to raspi ipp
-
+s.connect(('192.168.0.11',port)) #chnage to raspi ipp
+s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
 j.init()
@@ -24,10 +25,11 @@ spin = False
 controlling = False
 strength = 1
 bytesent = 0
-strt = time.perf_counter()
-rate = 1/10 #framerate
+rate = 1/25 #framerate
 ticks = 0
 tick = 0
+imgs = 0
+strt = time.perf_counter()
 processing = False
 while reading:
     code = 'no'
@@ -155,8 +157,14 @@ while reading:
             code = '999'
     boxs=[]
     if processing:
-        data = pickle.loads(data)
-        boxs = detect.scan(data)
+        try:
+            data = pickle.loads(data)
+            data = cv2.imdecode(data, 1)
+            boxs = detect.scan(data)
+            #print(boxs)
+        except Exception as e:
+            print(e)
+            pass
     msg = f'{code} {strength}'
     #preprocessing to be sent as bytes
     boxs = pickle.dumps(boxs)
@@ -170,12 +178,12 @@ while reading:
     #byterate testing
     bytesent += len(data)+len(msg)
     byterate = round(bytesent/(time.perf_counter()-strt))
+    print(f'byterate: {byterate/1000000}Mb/s') #change from total averdge to recent averdge (10sec)
     ticks+=1
     if ticks == 300:
         strt = time.perf_counter()
         bytesent = 0
         ticks = 0
-    #print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
 
     #end of loop code
     if tick == 0:
