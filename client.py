@@ -157,6 +157,7 @@ while reading:
     if processing:
         data = pickle.loads(data)
         boxs = detect.scan(data)
+        print(boxs)
     msg = f'{code} {strength}'
     #preprocessing to be sent as bytes
     boxs = pickle.dumps(boxs)
@@ -171,7 +172,7 @@ while reading:
             imgs+=1
         else:
             imgs +=1
-            print(f'avrg framerate: {imgs/time.perf_counter()-strt}')
+            print(f'avrg framerate: {imgs/(time.perf_counter()-strt)}')
     data = s.recv(1161600)
     #byterate testing
     bytesent += len(data)+len(msg)
