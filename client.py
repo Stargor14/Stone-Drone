@@ -8,7 +8,7 @@ pygame.init()
 s = so.socket()
 port = 42069
 #192.168.0.24
-s.connect(('192.168.0.18',port)) #chnage to raspi ipp
+s.connect(('192.168.0.24',port)) #chnage to raspi ipp
 
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
