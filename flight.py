@@ -19,6 +19,8 @@ cap = cv2.VideoCapture(0)
 cap.set(3,1280)
 cap.set(4,720)
 cap.set(10,70)
+servox = 90
+servoy = 90
 
 def initialize():
     global ser
@@ -26,6 +28,7 @@ def initialize():
     ser = serial.Serial('COM4', 9600)# serial port for sensory arduino
     board = MultiWii("/dev/ttyACM0") #__init__ takes the serial port, get from arduino IDE
     print("Flight Controller connected!")
+    #set servos to 90
     time.sleep(1.0)
     board.enable_arm()
     board.arm()
@@ -170,7 +173,11 @@ def centreobject(box):
 class Close(Exception):
     pass
 def getremdeg():
-    return 90,-90,90,-90
+    xleft = servox
+    xright = 180-servox
+    yup = servoy
+    ydown = 180-servoy
+    return xleft,xright,yup,ydown
 def getimg():
     success,img = cap.read()
     return img
@@ -214,9 +221,13 @@ def flightloop():
                         padding = 50 #allows for margin of error, in pixels
                         newx = 0
                         newy = 0
-                        if objloc[0]/xmod>(centrex+padding)/xmod or objloc[0]/xmod<(centrex-padding)/xmod:# x not centred
+                        if objloc[0]/xmod>(centrex+padding)/xmod:# x not centred right
+                            newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[1])
+                        if objloc[0]/xmod<(centrex-padding)/xmod:
                             newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[0])
-                        if objloc[1]/ymod>(centrey+padding)/ymod or objloc[1]/ymod<(centrey-padding)/ymod:# y not centred
+                        if objloc[1]/ymod>(centrey+padding)/ymod:# y not centred down
+                            newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[3])
+                        if objloc[1]/ymod<(centrey-padding)/ymod:
                             newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[2])
                         print((newx,newy))
             #end of loop actions
