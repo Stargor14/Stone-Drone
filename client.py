@@ -8,8 +8,8 @@ pygame.init()
 s = so.socket()
 port = 42069
 #192.168.0.24
-s.connect(('192.168.0.24',port)) #chnage to raspi ipp
-
+s.connect(('192.168.0.11',port)) #chnage to raspi ipp
+#s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
 j.init()
@@ -28,6 +28,7 @@ rate = 1/20 #framerate
 ticks = 0
 tick = 0
 imgs = 0
+strt = time.perf_counter()
 processing = False
 while reading:
     code = 'no'
@@ -158,9 +159,10 @@ while reading:
         try:
             data = pickle.loads(data)
             boxs = detect.scan(data)
-            print(boxs)
+            #print(boxs)
         except Exception as e:
             print(e)
+            pass
     msg = f'{code} {strength}'
     #preprocessing to be sent as bytes
     boxs = pickle.dumps(boxs)
@@ -170,23 +172,16 @@ while reading:
         s.send(msg)
     if tick == 1:
         s.send(boxs)
-        if imgs == 0:
-            strt = time.perf_counter()
-            imgs+=1
-        else:
-            imgs +=1
-            print(f'avrg framerate: {imgs/(time.perf_counter()-strt)}')
-    data = s.recv(1161600)
+    data = s.recv(11616000)
     #byterate testing
     bytesent += len(data)+len(msg)
-    if imgs >1:
-        byterate = round(bytesent/(time.perf_counter()-strt))
+    byterate = round(bytesent/(time.perf_counter()-strt))
+    print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
     ticks+=1
     if ticks == 300:
-        #strt = time.perf_counter()
+        strt = time.perf_counter()
         bytesent = 0
         ticks = 0
-    #print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
 
     #end of loop code
     if tick == 0:

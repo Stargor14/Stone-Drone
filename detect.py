@@ -67,9 +67,9 @@ def scan(img):
             i = classNames[classId-1]
             if i == 'person' or i == 'cat' or i == 'car':
                 cv2.rectangle(img,box,color=color[len(boxs)-1],thickness=2)
-                cv2.line(img,(320,240),(round(box[0]+box[2]/2),round(box[1]+box[3]/2)),color[len(boxs)-1],2)
-                cv2.line(img,(0,round(box[1]+box[3]/2)),(620,round(box[1]+box[3]/2)),color[len(boxs)-1],2)
-                cv2.line(img,(round(box[0]+box[2]/2),0),(round(box[0]+box[2]/2),480),color[len(boxs)-1],2)
+                cv2.line(img,(round(len(img[0])/2),round(len(img)/2)),(round(box[0]+box[2]/2),round(box[1]+box[3]/2)),color[len(boxs)-1],2)
+                cv2.line(img,(0,round(box[1]+box[3]/2)),(1000,round(box[1]+box[3]/2)),color[len(boxs)-1],2)
+                cv2.line(img,(round(box[0]+box[2]/2),0),(round(box[0]+box[2]/2),1000),color[len(boxs)-1],2)
                 cv2.putText(img,classNames[classId-1].upper(),(box[0]+10,box[1]+30),font,1,color[len(boxs)-1],2)
                 cv2.putText(img,str(round(confidence*100,2)),(box[0]+200,box[1]+30),font,1,color[len(boxs)-1],2)
                 boxs.append(box)

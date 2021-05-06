@@ -8,6 +8,7 @@ import thrust
 import socket as so
 import numpy as np
 import pickle
+import pandas as pd
 #raspi password is: eryk2005
 ser = 0
 board = 0
@@ -15,6 +16,7 @@ s = so.socket()
 port = 42069
 s.bind(('', port))
 s.listen(5)
+#s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
 cap = cv2.VideoCapture(0)
 cap.set(3,1280)
 cap.set(4,720)
@@ -212,12 +214,13 @@ def flightloop():
     while True:
         try:
             data = c.recv(100000)
+            #c.send(pickle.dumps(cap.read()))
             c.send(pickle.dumps(frames[n]))
             n+=1
             if tick == 0:
                 data = pickle.loads(data)
                 if type(data) is str:
-                    print(data)
+                    #print(data)
                     data = data.split()
                     command = data[0]
                     idd = int(data[1])
@@ -228,8 +231,6 @@ def flightloop():
                     print(f'FPS: {boxs[1]}')
                     boxs = [list(x) for x in boxs[0]]
                     print(boxs)
-                if boxs == []:
-                    print('not processing')
             if not data:
                 raise Close
 
@@ -238,18 +239,26 @@ def flightloop():
                 pushdata(convert(command,strength))
             else: #if in automation mode
                 if tick == 1:
+                    ylen = len(frames[10])
+                    xlen = len(frames[10][10])
+                    centrex = xlen/2
+                    centrey = ylen/2
+                    xmod = xlen/180
+                    ymod = ylen/180
+                    servoloc = (90,90)
+                    remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
+                    padding = 50 #allows for margin of error, in pixels
+                    newx = 0
+                    newy = 0
                     if len(boxs) == 1:
-                        #480x620
-                        centrex = 640/2
-                        centrey = 480/2
-                        xmod = 640/180
-                        ymod = 480/180
                         objloc = centreobject(boxs[0])
-                        servoloc = (90,90)
-                        remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
-                        padding = 50 #allows for margin of error, in pixels
-                        newx = 0
-                        newy = 0
+                    if len(boxs) > 2 and type(boxs) is list:
+                        boxspd = pd.DataFrame(boxs)
+                        avrgbox = []
+                        for i in boxspd:
+                            avrgbox.append(boxspd[i].mean())
+                        objloc = centreobject(avrgbox)
+                    if len(boxs) >=1 and type(boxs) is list:
                         if objloc[0]/xmod>(centrex+padding)/xmod:# x not centred right
                             newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[1])
                         if objloc[0]/xmod<(centrex-padding)/xmod:
