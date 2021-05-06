@@ -216,7 +216,7 @@ def flightloop():
         try:
             data = c.recv(10000000)
             #c.send(pickle.dumps(cap.read()))
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 10]
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 8]
             result, img = cv2.imencode('.jpg', frames[n], encode_param) #compression for wifi transfer
             c.send(pickle.dumps(img))
             n+=1
