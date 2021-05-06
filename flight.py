@@ -211,6 +211,7 @@ def flightloop():
     command = '008'
     strength = 0.25
     tick = 0
+    notdata = 0
     while True:
         try:
             data = c.recv(100000)
@@ -225,13 +226,17 @@ def flightloop():
                     command = data[0]
                     idd = int(data[1])
                     strength = idd*0.25
+                    notdata = 0
             elif tick == 1:
                 boxs = pickle.loads(data)
                 if len(boxs) == 2:
                     print(f'FPS: {boxs[1]}')
                     boxs = [list(x) for x in boxs[0]]
                     print(boxs)
+                    notdata = 0
             if not data:
+                notdata+=1
+            if notdata >= 100:
                 raise Close
 
             #flightlogic
