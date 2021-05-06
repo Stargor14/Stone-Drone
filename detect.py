@@ -9,7 +9,7 @@ cap = cv2.VideoCapture(0)
 cap.set(3,1280)
 cap.set(4,720)
 cap.set(10,70)
-
+'''
 classNames= []
 classFile = 'coco.names'
 with open(classFile,'rt') as f:
@@ -23,7 +23,7 @@ net.setInputSize(320,320)
 net.setInputScale(1.0/ 127.5)
 net.setInputMean((127.5, 127.5, 127.5))
 net.setInputSwapRB(True)
-'''
+
 def video(path):
     cap = cv2.VideoCapture(f'{path}')
     frameCount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -74,6 +74,6 @@ def scan(img):
                 cv2.putText(img,str(round(confidence*100,2)),(box[0]+200,box[1]+30),font,1,color[len(boxs)-1],2)
                 boxs.append(box)
     frametimes.append(time.perf_counter()-strt)
-    #cv2.imshow("Drone Vision",img)
-    #cv2.waitKey(1)
+    cv2.imshow("Drone Vision",img)
+    cv2.waitKey(1)
     return boxs,1/ft

@@ -193,13 +193,14 @@ def flightloop():
             data = c.recv(100000)
             c.send(pickle.dumps(frames[n]))
             n+=1
-            if tick == 0:
+            if tick == 0 and len(data)<25:
                 data = pickle.loads(data)
                 data = data.split()
                 command = data[0]
             elif tick == 1:
                 boxs = pickle.loads(data)
                 boxs = [list(x) for x in boxs]
+                print(boxs)
                 if boxs == [[]]:
                     print('not processing')
             if not data:
@@ -219,6 +220,7 @@ def flightloop():
                         xmod = 640/180
                         ymod = 480/180
                         objloc = centreobject(boxs[0])
+                        print(boxs[1])
                         servoloc = (90,90)
                         remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
                         padding = 50 #allows for margin of error, in pixels

@@ -8,7 +8,7 @@ pygame.init()
 s = so.socket()
 port = 42069
 #192.168.0.24
-s.connect(('localhost',port)) #chnage to raspi ipp
+s.connect(('192.168.0.18',port)) #chnage to raspi ipp
 
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
@@ -24,10 +24,10 @@ spin = False
 controlling = False
 strength = 1
 bytesent = 0
-strt = time.perf_counter()
-rate = 1/10 #framerate
+rate = 1/20 #framerate
 ticks = 0
 tick = 0
+imgs = 0
 processing = False
 while reading:
     code = 'no'
@@ -166,13 +166,20 @@ while reading:
         s.send(msg)
     if tick == 1:
         s.send(boxs)
+        if imgs == 0:
+            strt = time.perf_counter()
+            imgs+=1
+        else:
+            imgs +=1
+            print(f'avrg framerate: {imgs/time.perf_counter()-strt}')
     data = s.recv(1161600)
     #byterate testing
     bytesent += len(data)+len(msg)
-    byterate = round(bytesent/(time.perf_counter()-strt))
+    if imgs >1:
+        byterate = round(bytesent/(time.perf_counter()-strt))
     ticks+=1
     if ticks == 300:
-        strt = time.perf_counter()
+        #strt = time.perf_counter()
         bytesent = 0
         ticks = 0
     #print(f'byterate: {byterate}b/s {byterate*3600/1000000}Mb/h') #change from total averdge to recent averdge (10sec)
