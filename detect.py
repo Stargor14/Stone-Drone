@@ -74,6 +74,9 @@ def scan(img):
                 cv2.putText(img,str(round(confidence*100,2)),(box[0]+200,box[1]+30),font,1,color[len(boxs)-1],2)
                 boxs.append(box)
     frametimes.append(time.perf_counter()-strt)
-    cv2.imshow("Drone Vision",img)
-    cv2.waitKey(1)
-    return boxs
+    #cv2.imshow("Drone Vision",img)
+    #cv2.waitKey(1)
+    return boxs,1/ft
+
+for img in video('test.mp4'):
+    print(scan(img)[1])
