@@ -16,7 +16,7 @@ s = so.socket()
 port = 42069
 s.bind(('', port))
 s.listen(5)
-#s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
+s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
 cap = cv2.VideoCapture(0)
 cap.set(3,1280)
 cap.set(4,720)
@@ -216,7 +216,9 @@ def flightloop():
         try:
             data = c.recv(10000000)
             #c.send(pickle.dumps(cap.read()))
-            c.send(pickle.dumps(frames[n]))
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 20]
+            result, img = cv2.imencode('.jpg', frames[n], encode_param)
+            c.send(pickle.dumps(img))
             n+=1
             if tick == 0:
                 data = pickle.loads(data)
@@ -282,8 +284,8 @@ def flightloop():
             print(f'closed connection')
             c.close()
             break
-        #except Exception as e:
-        #    print(e)
+        except Exception as e:
+            print(e)
 
 while True:
     c, addr = s.accept()
