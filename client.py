@@ -155,9 +155,12 @@ while reading:
             code = '999'
     boxs=[]
     if processing:
-        data = pickle.loads(data)
-        boxs = detect.scan(data)
-        print(boxs)
+        try:
+            data = pickle.loads(data)
+            boxs = detect.scan(data)
+            print(boxs)
+        except Exception as e:
+            print(e)
     msg = f'{code} {strength}'
     #preprocessing to be sent as bytes
     boxs = pickle.dumps(boxs)

@@ -8,7 +8,6 @@ import thrust
 import socket as so
 import numpy as np
 import pickle
-import detect
 #raspi password is: eryk2005
 ser = 0
 board = 0
@@ -166,6 +165,28 @@ codelist=[
 ,"006", "106", "-106"
 ,"007", "107", "-107"
 ,"008", "108", "-108"]
+def video(path):
+    cap = cv2.VideoCapture(f'{path}')
+    frameCount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    frameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+
+    buf = np.empty((frameCount, frameHeight, frameWidth, 3), np.dtype('uint8'))
+
+    fc = 0
+    ret = True
+    strt = time.perf_counter()
+    while (fc < frameCount  and ret):
+        ret, buf[fc] = cap.read()
+        if fc%100 == 0:
+            rem = (frameCount-fc)/100
+            eta = rem*(time.perf_counter()-strt)
+            print(f"{fc}/{frameCount} ETA: {eta}s")
+            strt = time.perf_counter()
+        fc += 1
+
+    cap.release()
+    return buf
 def centreobject(box):
     middlex = (box[2]/2)+box[0]
     middley = (box[3]/2)+box[1]
@@ -183,7 +204,7 @@ def getimg():
     success,img = cap.read()
     return img
 def flightloop():
-    frames = detect.video('test.mp4')
+    frames = video('test.mp4')
     n=0
     command = '008'
     strength = 0.25
@@ -193,23 +214,27 @@ def flightloop():
             data = c.recv(100000)
             c.send(pickle.dumps(frames[n]))
             n+=1
-            if tick == 0 and len(data)<25:
+            if tick == 0:
                 data = pickle.loads(data)
-                data = data.split()
-                command = data[0]
+                if type(data) is str:
+                    print(data)
+                    data = data.split()
+                    command = data[0]
+                    idd = int(data[1])
+                    strength = idd*0.25
             elif tick == 1:
                 boxs = pickle.loads(data)
-                boxs = [list(x) for x in boxs]
-                print(boxs)
-                if boxs == [[]]:
+                if len(boxs) == 2:
+                    print(f'FPS: {boxs[1]}')
+                    boxs = [list(x) for x in boxs[0]]
+                    print(boxs)
+                if boxs == []:
                     print('not processing')
             if not data:
                 raise Close
 
             #flightlogic
             if command != 'no': #essentially if manual control is on
-                idd = int(data[1])
-                strength = idd*0.25
                 pushdata(convert(command,strength))
             else: #if in automation mode
                 if tick == 1:
@@ -220,7 +245,6 @@ def flightloop():
                         xmod = 640/180
                         ymod = 480/180
                         objloc = centreobject(boxs[0])
-                        print(boxs[1])
                         servoloc = (90,90)
                         remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
                         padding = 50 #allows for margin of error, in pixels
@@ -244,8 +268,8 @@ def flightloop():
             print(f'closed connection')
             c.close()
             break
-        except Exception as e:
-            print(e)
+        #except Exception as e:
+        #    print(e)
 
 while True:
     c, addr = s.accept()
