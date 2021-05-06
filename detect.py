@@ -4,7 +4,7 @@ import time
 import pandas as pd
 import random
 thres = 0.5 # Threshold to detect object
-
+'''
 cap = cv2.VideoCapture(0)
 cap.set(3,1280)
 cap.set(4,720)
@@ -23,7 +23,7 @@ net.setInputSize(320,320)
 net.setInputScale(1.0/ 127.5)
 net.setInputMean((127.5, 127.5, 127.5))
 net.setInputSwapRB(True)
-
+'''
 def video(path):
     cap = cv2.VideoCapture(f'{path}')
     frameCount = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))

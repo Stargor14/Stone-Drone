@@ -8,6 +8,7 @@ import thrust
 import socket as so
 import numpy as np
 import pickle
+import detect
 #raspi password is: eryk2005
 ser = 0
 board = 0
@@ -182,14 +183,16 @@ def getimg():
     success,img = cap.read()
     return img
 def flightloop():
-    im = cv2.imread("pic.jpg").tobytes()
+    frames = detect.video('test.mp4')
+    n=0
     command = '008'
     strength = 0.25
     tick = 0
     while True:
         try:
             data = c.recv(100000)
-            c.send(pickle.dumps(getimg()))
+            c.send(pickle.dumps(frames[n]))
+            n+=1
             if tick == 0:
                 data = pickle.loads(data)
                 data = data.split()
