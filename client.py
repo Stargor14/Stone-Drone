@@ -174,7 +174,7 @@ while reading:
         s.send(msg)
     if tick == 1:
         s.send(boxs)
-    data = s.recv(116160000)
+    data = s.recv(1161600)
     #byterate testing
     bytesent += len(data)+len(msg)
     byterate = round(bytesent/(time.perf_counter()-strt))
