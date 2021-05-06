@@ -25,9 +25,9 @@ In the repository I included a program that calculates the approximate flight ti
 
 I'll keep this file updated as things progress
 
-Update1: Some battery parts came in, so I soldered together a sketchy ass battery from old laptop 18650s. Turns out soldering nickel strips onto a flat surface isnt very fun. My left index finger now has 50% less touch after i burnered it 6 consecutive times. I have to get a spot welder next time I do this. Also, the fire extinguisher is now in my room.
+Update1 Late April: Some battery parts came in, so I soldered together a sketchy ass battery from old laptop 18650s. Turns out soldering nickel strips onto a flat surface isnt very fun. My left index finger now has 50% less touch after i burnered it 6 consecutive times. I have to get a spot welder next time I do this. Also, the fire extinguisher is now in my room.
 
-Update2: No new parts have come in yet, but many are close. I've written and msotly debugged the code for communcating between teh server(drone) and client(laptop or pc). It 
+Update2 Early May: No new parts have come in yet, but many are close. I've written and msotly debugged the code for communcating between teh server(drone) and client(laptop or pc). It 
 took a surpringly long time(2 days). The main flight loop is now be able to recognize people as well as other objects within a frame and move the camera sercos to attempot and 
 centre the image. Once the servos reach their maximum movemnt, nothing happens at the moemnt, but I will probably add yaw control as well soon. That way teh drone will be able 
 to more effectivly track a person or object. The image data from the raspi is heavily compressed(8-10% quality) so that it can reach a decently high fps(10? i think). There is 
