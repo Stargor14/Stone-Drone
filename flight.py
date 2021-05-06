@@ -214,7 +214,7 @@ def flightloop():
     notdata = 0
     while True:
         try:
-            data = c.recv(100000)
+            data = c.recv(10000000)
             #c.send(pickle.dumps(cap.read()))
             c.send(pickle.dumps(frames[n]))
             n+=1
