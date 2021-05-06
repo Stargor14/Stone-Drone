@@ -77,6 +77,3 @@ def scan(img):
     #cv2.imshow("Drone Vision",img)
     #cv2.waitKey(1)
     return boxs,1/ft
-
-for img in video('test.mp4'):
-    print(scan(img)[1])
