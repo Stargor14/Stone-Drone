@@ -1,16 +1,3 @@
-#!/usr/bin/env python
-
-"""multiwii.py: Handles Multiwii Serial Protocol."""
-
-__author__ = "Aldo Vargas"
-__copyright__ = "Copyright 2017 Altax.net"
-
-__license__ = "GPL"
-__version__ = "1.6"
-__maintainer__ = "Aldo Vargas"
-__email__ = "alduxvm@gmail.com"
-__status__ = "Development"
-
 import serial
 import time
 import struct
@@ -19,7 +6,6 @@ import util
 class MultiWii:
 
     """Multiwii Serial Protocol message ID"""
-    """ notice: just attitude, rc channels and raw imu, set raw rc are implemented at the moment """
     REBOOT = 68
     VTX_CONFIG = 88
     VTX_SET_CONFIG = 89
@@ -60,6 +46,8 @@ class MultiWii:
     SET_MOTOR = 214
     EEPROM_WRITE = 250
     DEBUG = 254
+    SENSORREAD = 998
+    SERVOWRITE = 999
 
     """Class initialization"""
 

@@ -9,7 +9,7 @@ pygame.init()
 s = so.socket()
 port = 42069
 #192.168.0.24
-s.connect(('192.168.0.11',port)) #chnage to raspi ipp
+s.connect(('localhost',port)) #chnage to raspi ipp
 s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
 pygame.joystick.init()
 j = pygame.joystick.Joystick(0)
@@ -57,7 +57,9 @@ while reading:
             if bu == 0:
                 u = True
             if bu == 1:
-                spin = True
+                spin+=1
+                if spin==3:
+                    spin=0
             if bu == 2:
                 d = True
             if bu == 3:
@@ -153,8 +155,10 @@ while reading:
                 code = '108'
             if d:
                 code = '-108'
-        if spin:
+        if spin == 1:
             code = '999'
+        if spin == 2:
+            code = '998'
     boxs=[]
     if processing:
         try:
@@ -178,7 +182,7 @@ while reading:
     #byterate testing
     bytesent += len(data)+len(msg)
     byterate = round(bytesent/(time.perf_counter()-strt))
-    print(f'byterate: {byterate/1000000}Mb/s') #change from total averdge to recent averdge (10sec)
+    print(f'byterate: {byterate/1000000*900}Mb/15min') #change from total averdge to recent averdge (10sec)
     ticks+=1
     if ticks == 300:
         strt = time.perf_counter()

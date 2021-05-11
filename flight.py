@@ -10,6 +10,7 @@ import numpy as np
 import pickle
 import pandas as pd
 #raspi password is: eryk2005
+#change arduino code in protocol.cpp and multiwii.cpp
 ser = 0
 board = 0
 s = so.socket()
@@ -205,8 +206,35 @@ def getremdeg():
 def getimg():
     success,img = cap.read()
     return img
+def followbox(boxs):
+    centrex = xlen/2
+    centrey = ylen/2
+    xmod = xlen/180
+    ymod = ylen/180
+    servoloc = (90,90)
+    remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
+    padding = 50 #allows for margin of error, in pixels
+    newx = 0
+    newy = 0
+    if len(boxs) == 1:
+        objloc = centreobject(boxs[0])
+    if len(boxs) > 1 and type(boxs) is list:
+        boxspd = pd.DataFrame(boxs)
+        avrgbox = []
+        for i in boxspd:
+            avrgbox.append(boxspd[i].mean())
+        objloc = centreobject(avrgbox)
+    if len(boxs) >=1 and type(boxs) is list:
+        if objloc[0]/xmod>(centrex+padding)/xmod:# x not centred right
+            newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[1])
+        if objloc[0]/xmod<(centrex-padding)/xmod:
+            newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[0])
+        if objloc[1]/ymod>(centrey+padding)/ymod:# y not centred down
+            newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[3])
+        if objloc[1]/ymod<(centrey-padding)/ymod:
+            newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[2])
+        return (newx,newy,0)
 def flightloop():
-    frames = video('test.mp4')
     n=0
     command = '008'
     strength = 0.25
@@ -246,35 +274,8 @@ def flightloop():
                 pushdata(convert(command,strength))
             else: #if in automation mode
                 if tick == 1:
-                    ylen = len(frames[10])
-                    xlen = len(frames[10][10])
-                    centrex = xlen/2
-                    centrey = ylen/2
-                    xmod = xlen/180
-                    ymod = ylen/180
-                    servoloc = (90,90)
-                    remdegrees = getremdeg() #gets remainign degrees of freedom of servos, 0x+ 1x-, 2y+, 3y-
-                    padding = 50 #allows for margin of error, in pixels
-                    newx = 0
-                    newy = 0
-                    if len(boxs) == 1:
-                        objloc = centreobject(boxs[0])
-                    if len(boxs) > 2 and type(boxs) is list:
-                        boxspd = pd.DataFrame(boxs)
-                        avrgbox = []
-                        for i in boxspd:
-                            avrgbox.append(boxspd[i].mean())
-                        objloc = centreobject(avrgbox)
-                    if len(boxs) >=1 and type(boxs) is list:
-                        if objloc[0]/xmod>(centrex+padding)/xmod:# x not centred right
-                            newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[1])
-                        if objloc[0]/xmod<(centrex-padding)/xmod:
-                            newx = min((objloc[0]/xmod) - (centrex)/xmod,remdegrees[0])
-                        if objloc[1]/ymod>(centrey+padding)/ymod:# y not centred down
-                            newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[3])
-                        if objloc[1]/ymod<(centrey-padding)/ymod:
-                            newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[2])
-                        print((newx,newy))
+                    print(followbox(boxs))
+
             #end of loop actions
             if tick == 0:
                 tick = 1
@@ -286,7 +287,9 @@ def flightloop():
             break
         except Exception as e:
             print(e)
-
+frames = video('test.mp4')
+ylen = len(frames[10])
+xlen = len(frames[10][10])
 while True: #backup loop, if connection is lost
     c, addr = s.accept()
     #initialize()
