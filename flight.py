@@ -2,6 +2,7 @@ import cv2
 import serial
 from msp import MultiWii
 from util import push16
+from util import push8
 import time
 import random
 import thrust
@@ -9,6 +10,8 @@ import socket as so
 import numpy as np
 import pickle
 import pandas as pd
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 #raspi password is: eryk2005
 #change arduino code in protocol.cpp and multiwii.cpp
 ser = 0
@@ -18,31 +21,27 @@ port = 42069
 s.bind(('', port))
 s.listen(5)
 s.setsockopt(so.IPPROTO_TCP, so.TCP_NODELAY, 1)
-cap = cv2.VideoCapture(0)
-cap.set(3,1280)
-cap.set(4,720)
-cap.set(10,70)
+camera = PiCamera()
+camera.resolution = (320*1,240*1)
+camera.framerate = 20
 servox = 90
 servoy = 90
 
 def initialize():
     global ser
     global board
-    ser = serial.Serial('COM4', 9600)# serial port for sensory arduino
-    board = MultiWii("/dev/ttyACM0") #__init__ takes the serial port, get from arduino IDE
+    ser = serial.Serial('COM5', 9600)# serial port for sensory arduino
+    #board = MultiWii("COM5") #__init__ takes the serial port, get from arduino IDE
     print("Flight Controller connected!")
     #set servos to 90
     time.sleep(1.0)
-    board.enable_arm()
-    board.arm()
+    #board.enable_arm()
+    #board.arm()
 
 #GPS Waypoint Navigation, Live Stream Video, Altitude Hold, Position Hold, Return to Home, random patrol, follow (some bright color) ball, bluetooth control
 #Telemetry via Bluetooth
 #need function or taking in sensory data and processing
 #need diff modes for flying, set path, gps to gps, follow the dots (using camera), random patrol (indoor using sensors), hover at ALTITUDE, etc etc
-
-def converthover(strength):
-    return [0,0,strength,0]
 
 def convert(code,strength=0.5):
     #move like an 8 way stick for "simplicity"
@@ -99,14 +98,17 @@ def convert(code,strength=0.5):
         print('invalid code')
     return [R,P,T,Y]
 
-def camservos(x,y):
+def camservos(x,y,z):
     #will move camera servos to desired position to x,y
-    #min is 0 max is 180, middle is 90
-    # +90 = 1
-    # -90 = -1
-    # f(x) = 90x+90
-    xpos = (90*x)+90
-    ypos = (90*y)+90
+    #pass as 0-180 for every servo
+    #send serial data to arduino
+    buf=[]
+    push8(buf,x)
+    push8(buf,y)
+    push8(buf,z)
+    print(buf)
+    #board.sendCMD(MultiWii.SERVOWRITE,buf)
+    return
 
 #throttle and rotation, yaw can be used as LIDAR type beat, can scan using all sensors and map surroundings, plot itslef within the space
 #give direction/speed
@@ -243,9 +245,11 @@ def flightloop():
     while True:
         try:
             data = c.recv(10000000)
-            #c.send(pickle.dumps(cap.read()))
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 10]
-            result, img = cv2.imencode('.jpg', frames[n], encode_param) #compression for wifi transfer
+            img = np.empty(((240*1) * (320*1) * 3), dtype=np.uint8)
+            camera.capture(img, 'bgr', use_video_port=True)
+            img = img.reshape((240,320, 3))
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 30]
+            result, img = cv2.imencode('.jpg', img, encode_param) #compression for wifi transfer
             c.send(pickle.dumps(img))
             n+=1
             if tick == 0:
@@ -287,11 +291,17 @@ def flightloop():
             break
         except Exception as e:
             print(e)
-frames = video('test.mp4')
-ylen = len(frames[10])
-xlen = len(frames[10][10])
+ylen = 240
+xlen = 320
+def autoloop():
+    readings = []#measured per angle, therefore needs to be very precise
+    #might have to use servos to scan
+'''
 while True: #backup loop, if connection is lost
+    #WRITE FULL AUTO MODE, START WRITING CODE FOR LIDAR
     c, addr = s.accept()
     #initialize()
     print(f'connected from {addr}, ready to fly')
     flightloop()
+'''
+initialize()

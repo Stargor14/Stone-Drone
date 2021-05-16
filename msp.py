@@ -75,7 +75,7 @@ class MultiWii:
 
         self.ser = serial.Serial()
         self.ser.port = serPort
-        self.ser.baudrate = 115200
+        self.ser.baudrate = 9600
         self.ser.bytesize = serial.EIGHTBITS
         self.ser.parity = serial.PARITY_NONE
         self.ser.stopbits = serial.STOPBITS_ONE
@@ -88,11 +88,13 @@ class MultiWii:
 
         while True:
             try:
+                self.ser.close()
                 self.ser.open()
                 time.sleep(1)
                 break
             except Exception as error:
-                time.sleep(0.1)
+                print(error)
+                time.sleep(0.01)
 
     """Function for sending a command to the board"""
 
@@ -109,6 +111,7 @@ class MultiWii:
             b = None
             b = self.ser.write(struct.pack(
                 '<3c2B' + data_format + 'B', *total_data))
+            print(b)
         except Exception as error:
             print("\n\nError in sendCMD.")
             print("("+str(error)+")\n\n")
