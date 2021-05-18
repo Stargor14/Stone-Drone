@@ -1,8 +1,5 @@
 import cv2
 import serial
-from msp import MultiWii
-from util import push16
-from util import push8
 import time
 import random
 import thrust
@@ -15,7 +12,6 @@ from picamera import PiCamera
 #raspi password is: eryk2005
 #change arduino code in protocol.cpp and multiwii.cpp
 ser = 0
-board = 0
 s = so.socket()
 port = 42069
 s.bind(('', port))
@@ -29,14 +25,14 @@ servoy = 90
 
 def initialize():
     global ser
-    global board
-    ser = serial.Serial('COM5', 9600)# serial port for sensory arduino
-    #board = MultiWii("COM5") #__init__ takes the serial port, get from arduino IDE
-    print("Flight Controller connected!")
+    try:
+        ser = serial.Serial('/dev/ttyUSB0', 9600,timeout=0)# serial port for sensory arduino
+        ser.flush()
+    except Exception as e:
+        ser = serial.Serial('/dev/ttyUSB1', 9600,timeout=0)
+        ser.flush()
     #set servos to 90
-    time.sleep(1.0)
-    #board.enable_arm()
-    #board.arm()
+    #arm the motors
 
 #GPS Waypoint Navigation, Live Stream Video, Altitude Hold, Position Hold, Return to Home, random patrol, follow (some bright color) ball, bluetooth control
 #Telemetry via Bluetooth
@@ -102,12 +98,7 @@ def camservos(x,y,z):
     #will move camera servos to desired position to x,y
     #pass as 0-180 for every servo
     #send serial data to arduino
-    buf=[]
-    push8(buf,x)
-    push8(buf,y)
-    push8(buf,z)
-    print(buf)
-    #board.sendCMD(MultiWii.SERVOWRITE,buf)
+    print((x,y,z))
     return
 
 #throttle and rotation, yaw can be used as LIDAR type beat, can scan using all sensors and map surroundings, plot itslef within the space
@@ -119,47 +110,7 @@ def camservos(x,y,z):
 #aileron: 0 (no left/ right movement)
 #elevator: 0 (no up/downward pitch)
 
-hoverp = thrust.predict(895)[0]
-def pushdata(data):
-    buf = []
-    #A = roll 0
-    #E = pitch 1
-    #T = throttle 2
-    #R = yaw/spin 3
-    roll = 0
-    pitch = 0
-    throttle = 0
-    spin = 0
-    push16(buf, int(data[0] * 400 + 1500)) #test each individual axis
-    roll = abs(data[0] * 100)
-    push16(buf, int(data[1] * 400 + 1500))
-    pitch = abs(data[1] * 100)
-    if int(data[2])<0:
-        push16(buf, int(data[2] * (1000*(hoverp/100)) + 1000 + (1000*((hoverp)/100))))
-        throttle = int((hoverp)*data[2]+hoverp)
-        #print(f'{(hoverp)*data[2]+hoverp}% throttle')
-    else:
-        push16(buf, int(data[2] * (1800-((1000*(hoverp/100))+1000)) + 1000+(1000*((hoverp)/100)))) #1000-2000, y intercept is the hover%, calcuklated as 1000+(1000*(%)/100)
-        throttle = int((100-hoverp)*data[2]+hoverp)
-        #print(f'{(100-hoverp)*data[2]+hoverp}% throttle')
-    push16(buf, int(data[3] * 400 + 1500))
-    spin = abs(data[3] * 100)
-    print(f"Roll: {roll} Pitch: {pitch} Throttle: {throttle}% Spin: {spin}")
-    #idek what the values of the serial are, but thankfully someone smarter than me atm made a solution for it, thank u Aldo Vargas
-    push16(buf, 1500)# none of these will be used, I have seperate arduino for I/O
-    push16(buf, 1000)
-    push16(buf, 1000)
-    push16(buf, 1000) #buf is just a serialized string/array? of all the informatiuon being sent, check out util.py to verify
-    # send rc command
-    #board.sendCMD(MultiWii.SET_RAW_RC, buf)
-    #time.sleep(0.025)
-
-    # print board attitude
-    #board.getData(MultiWii.ATTITUDE)
-    #print(board.attitude)
-    #time.sleep(0.025)
-    return buf
-
+#hoverp = thrust.predict(895)[0]
 codelist=[
  "000", "100", "-100"
 ,"001", "101", "-101"
@@ -201,13 +152,10 @@ class Close(Exception):
     pass
 def getremdeg():
     xleft = servox
-    xright = 180-servox
+    xright = 360-servox
     yup = servoy
     ydown = 180-servoy
     return xleft,xright,yup,ydown
-def getimg():
-    success,img = cap.read()
-    return img
 def followbox(boxs):
     centrex = xlen/2
     centrey = ylen/2
@@ -236,22 +184,35 @@ def followbox(boxs):
         if objloc[1]/ymod<(centrey-padding)/ymod:
             newy = min((objloc[1]/ymod) - (centrey)/ymod,remdegrees[2])
         return (newx,newy,0)
+    else:
+        return (0,0,0)
+def getgyro():
+    ser.reset_input_buffer()#definetly a very messy solution, but it works 
+    time.sleep(0.03)
+    for _ in range(2):
+        by = ser.readline()
+    by = by.decode()
+    print(by) #god knows wtf is even happening anymore, if I increase teh resolution the gyro doesnt read anymore.... they arent even part of the same system...
+    for i in range(len(str(by))):
+        print(by[i])
+    return 0,0,0
 def flightloop():
-    n=0
     command = '008'
     strength = 0.25
     tick = 0
     notdata = 0
+    started = False
+    time.sleep(2)
     while True:
         try:
-            data = c.recv(10000000)
+            
+            data = c.recv(10000)
             img = np.empty(((240*1) * (320*1) * 3), dtype=np.uint8)
             camera.capture(img, 'bgr', use_video_port=True)
             img = img.reshape((240,320, 3))
-            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 30]
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 20]
             result, img = cv2.imencode('.jpg', img, encode_param) #compression for wifi transfer
             c.send(pickle.dumps(img))
-            n+=1
             if tick == 0:
                 data = pickle.loads(data)
                 if type(data) is str:
@@ -263,45 +224,53 @@ def flightloop():
                     notdata = 0
             elif tick == 1:
                 boxs = pickle.loads(data)
-                if len(boxs) == 2:
-                    print(f'FPS: {boxs[1]}')
-                    boxs = [list(x) for x in boxs[0]]
-                    print(boxs)
-                    notdata = 0
+                boxs = [list(x) for x in boxs]
+                try:
+                    if boxs[0][0] == 'n': #fixes server client tick desync, command and strength would be read as boxs
+                        continue
+                except:
+                    pass
+                notdata = 0
             if not data:
                 notdata+=1
             if notdata >= 100:
                 raise Close
 
             #flightlogic
+            #print((command,strength))
+            getgyro()
             if command != 'no': #essentially if manual control is on
-                pushdata(convert(command,strength))
+                pass
             else: #if in automation mode
                 if tick == 1:
                     print(followbox(boxs))
+                    pass
 
             #end of loop actions
             if tick == 0:
                 tick = 1
             elif tick == 1:
-                tick = 0
-        except Close:
+                tick = 0         
+        except Close: #error handling
             print(f'closed connection')
             c.close()
             break
         except Exception as e:
             print(e)
+            pass
 ylen = 240
 xlen = 320
 def autoloop():
     readings = []#measured per angle, therefore needs to be very precise
     #might have to use servos to scan
-'''
+
+initialize()
 while True: #backup loop, if connection is lost
     #WRITE FULL AUTO MODE, START WRITING CODE FOR LIDAR
+    print('Ready to connect')
     c, addr = s.accept()
     #initialize()
     print(f'connected from {addr}, ready to fly')
     flightloop()
-'''
-initialize()
+
+

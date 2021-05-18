@@ -11,12 +11,12 @@ cap.set(4,720)
 cap.set(10,70)
 '''
 classNames= []
-classFile = 'coco.names'
+classFile = 'misc/coco.names'
 with open(classFile,'rt') as f:
     classNames = f.read().rstrip('\n').split('\n')
 
-configPath = 'ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
-weightsPath = 'frozen_inference_graph.pb'
+configPath = 'misc/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt'
+weightsPath = 'misc/frozen_inference_graph.pb'
 
 net = cv2.dnn_DetectionModel(weightsPath,configPath)
 net.setInputSize(320,320)
@@ -76,4 +76,4 @@ def scan(img):
     frametimes.append(time.perf_counter()-strt)
     cv2.imshow("Drone Vision",img)
     cv2.waitKey(1)
-    return boxs,1/ft
+    return boxs
