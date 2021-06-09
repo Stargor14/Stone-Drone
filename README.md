@@ -34,3 +34,6 @@ to more effectivly track a person or object. The image data from the raspi is he
 very high quality loss, however the object recognition algorithim can still recognize people effectivly and to a decent degree of accuracy. Ill probably start writing the actual 
 flight decision loop. Fail safes and decision overrides?
   Im not too sure about what Im going to add first but by the next update Ill probably be done human tracking functionailty. Now that I think of it, that will definelty be the first mode I introduce. 
+  
+Update3: early june
+Im not sure why my last updatye didnt go through, but the gist of everything is that all parts came, and the drone is done physical construction. Somewhere along teh way I chose to scrap the idea of using multiwii firmware and instead opted to write my own stabiliztion and serial communcation protocol. So far thats been going well, but ive been lazy and havent started writing the pid loop until now. I've hung the drone off my ceiling using soime kind of rubber or nylon cable. Im not sure what it is, but teh point is that i can test the drone without risking snapping its arms (again). Once I finish some morestabiuliztion code, ill get working on actual decision making. 
