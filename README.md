@@ -1,5 +1,5 @@
 # Stone-Drone
-<img src="https://github.com/Stargor14/Stone-Drone/blob/main/IMG_5997.jpg" alt="DEMO PHOTO" title="Test flight photo">
+<img src="https://github.com/Stargor14/Stone-Drone/blob/main/IMG_5996.jpg" alt="DEMO PHOTO" title="Test flight photo">
 This is a fully autonomous drone that uses a raspi, arduino mega and a multitude of sensors to be able to maneuver in and outdoors 
 
 This project was extremly fun to just plan out and construct. As of late june 2021, i finished physical construction of the drone and even got to fly, but the stabilization code was unfortunatly not good enough, so the drone would crash land after a few seconds of flight. 
