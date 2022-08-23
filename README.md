@@ -1,7 +1,7 @@
 # Stone-Drone
 This is a fully autonomous drone that uses a raspi, arduino mega and a multitude of sensors to be able to maneuver in and outdoors 
 
-So far this project has been extremly fun to just plan out and as of late april 2021, I'm still waiting on parts to come in from China. 
+This project was extremly fun to just plan out and construct. As of late june 2021, i finished physical construction of the drone and even got to fly, but the stabilization code was unfortunatly not good enough, so the drone would crash land after a few seconds of flight. 
 
 https://docs.google.com/spreadsheets/d/1sfcIO34VnrTxYRGocUGCcTRqPbvwn5STOFTQCprg6zo/edit?usp=sharing
 ^^ spreadsheet with links to parts and costs. Some parts that I already ordered not included
